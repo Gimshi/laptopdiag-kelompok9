@@ -1,4 +1,4 @@
-# 🤖 Laptop Diagnosis Expert System
+﻿# 🤖 Laptop Diagnosis Expert System
 
 test
 
@@ -423,6 +423,3 @@ Created for **Pengantar Kecerdasan Buatan** course at UNJ.
 ---
 
 **🚀 Happy Diagnosing! 🔧**
-#   l a p t o p d i a g - k e l o m p o k 9 
- 
- 
