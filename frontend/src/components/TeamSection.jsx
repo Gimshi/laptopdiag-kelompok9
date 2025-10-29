@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, GraduationCap } from 'lucide-react';
+import { Users, GraduationCap, User } from 'lucide-react';
 
 const TeamSection = () => {
   const teamMembers = [
@@ -88,7 +88,7 @@ const TeamSection = () => {
           
           <div className="flex items-center justify-center gap-2 mt-4 text-sm text-highlight-500">
             <GraduationCap className="w-5 h-5" />
-            <span>Pengantar Kecerdasan Buatan - UNJ 2025</span>
+            <span>Pengantar Kecerdasan Buatan - Ilmu Komputer UNJ 2024</span>
           </div>
         </motion.div>
 
@@ -116,16 +116,10 @@ const TeamSection = () => {
                 
                 {/* Card Content */}
                 <div className="p-6 md:p-8">
-                  {/* Avatar Circle with Gradient */}
+                  {/* Avatar Circle with User Icon */}
                   <div className="mb-6 flex justify-center">
-                    <div className={`relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${member.color} p-1 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                        <span className="text-2xl md:text-3xl font-bold bg-gradient-to-br bg-clip-text text-transparent" style={{
-                          backgroundImage: `linear-gradient(135deg, var(--un-preset-theme-colors-primary-500), var(--un-preset-theme-colors-accent-500))`
-                        }}>
-                          {member.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                        </span>
-                      </div>
+                    <div className={`relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br ${member.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <User className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={2} />
                     </div>
                   </div>
 
