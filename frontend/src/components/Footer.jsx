@@ -24,12 +24,14 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-bold text-secondary-100 mb-3 text-base md:text-lg">Teknologi</h3>
+            <h3 className="font-bold text-secondary-100 mb-3 text-base md:text-lg">Our Team:</h3>
             <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-secondary-200">
-              <li>• Forward Chaining Algorithm</li>
-              <li>• React + Vite</li>
-              <li>• Flask REST API</li>
-              <li>• UnoCSS Framework</li>
+              <li>• Adri Lorenzo Patiaraja</li>
+              <li>• Gideon Miracle Sihombing</li>
+              <li>• Muhammad Dheki Akbar</li>
+              <li>• M. Zacky Nauval</li>
+              <li>• Rafi Ruzain Raba</li>
+              <li>• Rizky Raffandy Halim</li>
             </ul>
           </div>
 
@@ -37,13 +39,6 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-secondary-100 mb-3 text-base md:text-lg">Kontak</h3>
             <div className="space-y-2 md:space-y-3">
-              <a
-                href="mailto:kelompok9@unj.ac.id"
-                className="flex items-center gap-2 md:gap-3 text-sm md:text-base text-secondary-200 hover:text-primary-400 transition-colors"
-              >
-                <Mail className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                <span className="break-all">kelompok9@unj.ac.id</span>
-              </a>
               <a
                 href="https://github.com/Gimshi/laptopdiag-kelompok9"
                 target="_blank"
@@ -67,11 +62,6 @@ const Footer = () => {
               <span>Pengantar Kecerdasan Buatan</span>
             </div>
             
-            <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-base text-secondary-200">
-              <span>Made with</span>
-              <Heart className="w-4 h-4 md:w-5 md:h-5 text-primary-500 fill-primary-500 flex-shrink-0" />
-              <span>at UNJ</span>
-            </div>
           </div>
         </div>
       </div>
