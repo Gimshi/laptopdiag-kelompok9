@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { diagnosisAPI } from './utils/api';
 import Navbar from './components/Navbar';
@@ -19,6 +19,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  
+  // Ref untuk auto scroll ke hasil diagnosis
+  const resultsRef = useRef(null);
 
   // Fetch symptoms on mount
   useEffect(() => {
@@ -65,6 +68,14 @@ function App() {
 
       if (response.success) {
         setDiagnosisResults(response.data);
+        
+        // Auto scroll ke hasil diagnosis setelah 300ms (beri waktu untuk render)
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }, 300);
       } else {
         setError(response.error || 'Failed to get diagnosis');
       }
@@ -250,6 +261,7 @@ function App() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                ref={resultsRef}
               >
                 <LoadingSpinner message="Menganalisis gejala dengan Forward Chaining AI..." />
               </motion.div>
@@ -261,6 +273,7 @@ function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
+                ref={resultsRef}
               >
                 <DiagnosisResults results={diagnosisResults} />
               </motion.div>
