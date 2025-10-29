@@ -35,7 +35,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Source */}
           <div>
             <h3 className="font-bold text-secondary-100 mb-3 text-base md:text-lg">Kontak</h3>
             <div className="space-y-2 md:space-y-3">

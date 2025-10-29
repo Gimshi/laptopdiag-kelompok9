@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { diagnosisAPI } from './utils/api';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import TeamSection from './components/TeamSection';
 import AboutSection from './components/AboutSection';
 import HowItWorks from './components/HowItWorks';
 import SymptomSelector from './components/SymptomSelector';
@@ -93,6 +94,7 @@ function App() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <Hero />
+      <TeamSection />
       <AboutSection />
       <HowItWorks />
 
