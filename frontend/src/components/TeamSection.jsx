@@ -6,37 +6,31 @@ const TeamSection = () => {
     {
       name: 'Adri Lorenzo Patiaraja',
       nim: '1313624063',
-      role: 'Team Lead',
       color: 'from-primary-400 to-primary-600'
     },
     {
       name: 'Gideon Miracle Sihombing',
       nim: '1313624081',
-      role: 'Backend Developer',
       color: 'from-accent-400 to-accent-600'
     },
     {
       name: 'Muhammad Dheki Akbar',
       nim: '1313624076',
-      role: 'AI Engineer',
       color: 'from-primary-500 to-accent-500'
     },
     {
       name: 'M. Zacky Nauval',
       nim: '1313624068',
-      role: 'Frontend Developer',
       color: 'from-accent-500 to-primary-500'
     },
     {
       name: 'Rafi Ruzain Raba',
       nim: '1313624072',
-      role: 'Full Stack Developer',
       color: 'from-primary-400 to-accent-400'
     },
     {
       name: 'Rizky Raffandy Halim',
       nim: '1313624067',
-      role: 'UI/UX Designer',
       color: 'from-accent-400 to-primary-400'
     }
   ];
@@ -141,15 +135,9 @@ const TeamSection = () => {
                       {member.name}
                     </h3>
                     
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary-100 rounded-full">
-                      <span className="text-xs md:text-sm font-mono font-semibold text-highlight-700">
+                    <div className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r ${member.color} bg-opacity-10 rounded-full`}>
+                      <span className="text-sm md:text-base font-mono font-semibold text-highlight-700">
                         {member.nim}
-                      </span>
-                    </div>
-                    
-                    <div className={`inline-block px-4 py-2 rounded-full bg-gradient-to-r ${member.color} bg-opacity-10`}>
-                      <span className="text-sm font-medium text-highlight-700">
-                        {member.role}
                       </span>
                     </div>
                   </div>
