@@ -1,5 +1,7 @@
 # 🤖 Laptop Diagnosis Expert System
 
+test
+
 Sistem Pakar untuk mendeteksi kerusakan laptop menggunakan **Forward Chaining AI Algorithm**.
 
 ![Tech Stack](https://img.shields.io/badge/Python-3.11-blue)
@@ -421,5 +423,6 @@ Created for **Pengantar Kecerdasan Buatan** course at UNJ.
 ---
 
 **🚀 Happy Diagnosing! 🔧**
-#   l a p t o p d i a g - k e l o m p o k 9  
+#   l a p t o p d i a g - k e l o m p o k 9 
+ 
  
