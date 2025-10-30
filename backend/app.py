@@ -115,6 +115,14 @@ def diagnose():
         top_n = data.get('top_n', 5)  # Default 5 results
         strict_mode = data.get('strict_mode', False)  # Default partial matching
         
+        # Debug logging
+        print(f"\n🔍 DIAGNOSIS REQUEST:")
+        print(f"   Symptoms: {symptoms}")
+        print(f"   Threshold: {threshold}%")
+        print(f"   Top N: {top_n}")
+        print(f"   Strict Mode: {strict_mode}")
+        print(f"   Detailed: {detailed}\n")
+        
         # Validasi symptoms
         valid_symptoms = set(kb.symptoms.keys())
         invalid_symptoms = [s for s in symptoms if s not in valid_symptoms]
