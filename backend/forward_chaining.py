@@ -93,6 +93,27 @@ class ForwardChainingEngine:
         if strict_mode:
             return self._run_strict_mode(symptoms)
         
+        # Adaptive threshold: jika hanya 1-2 gejala, turunkan threshold
+        adaptive_threshold = threshold
+        if len(symptoms) <= 1:
+            adaptive_threshold = min(threshold, 30)  # Max 30% untuk 1 gejala (show more results)
+            self.trace.append({
+                'step': 'adaptive_threshold',
+                'action': 'threshold_adjusted',
+                'original_threshold': threshold,
+                'new_threshold': adaptive_threshold,
+                'reason': 'Single symptom selected - showing more possibilities'
+            })
+        elif len(symptoms) == 2:
+            adaptive_threshold = min(threshold, 45)  # Max 45% untuk 2 gejala
+            self.trace.append({
+                'step': 'adaptive_threshold',
+                'action': 'threshold_adjusted',
+                'original_threshold': threshold,
+                'new_threshold': adaptive_threshold,
+                'reason': 'Two symptoms selected - relaxed threshold'
+            })
+        
         # Partial matching: kumpulkan semua kandidat dengan confidence >= threshold
         candidates = []
         
@@ -111,7 +132,7 @@ class ForwardChainingEngine:
                 confidence = 0
             
             # Tambahkan ke kandidat jika memenuhi threshold
-            if confidence >= threshold:
+            if confidence >= adaptive_threshold:
                 candidates.append({
                     'rule_id': rule_id,
                     'confidence': round(confidence, 2),
@@ -151,7 +172,9 @@ class ForwardChainingEngine:
             'step': 'termination',
             'action': 'partial_matching_complete',
             'message': f'Found {len(candidates)} candidates, returning top {len(top_candidates)}',
-            'threshold_used': threshold
+            'threshold_used': adaptive_threshold,
+            'original_threshold': threshold,
+            'adaptive_mode': adaptive_threshold != threshold
         })
         
         return {
@@ -160,7 +183,9 @@ class ForwardChainingEngine:
             'fired_rules': self.fired_rules,
             'working_memory': list(self.working_memory),
             'total_candidates': len(candidates),
-            'threshold_used': threshold,
+            'threshold_used': adaptive_threshold,
+            'original_threshold': threshold,
+            'adaptive_mode': adaptive_threshold != threshold,
             'strict_mode': False
         }
     
@@ -274,6 +299,8 @@ class ForwardChainingEngine:
             'rules_fired': len(result['fired_rules']),
             'total_candidates': result.get('total_candidates', len(result['diagnoses'])),
             'threshold_used': result.get('threshold_used', 100),
+            'original_threshold': result.get('original_threshold', 100),
+            'adaptive_mode': result.get('adaptive_mode', False),
             'strict_mode': result.get('strict_mode', False)
         }
         
