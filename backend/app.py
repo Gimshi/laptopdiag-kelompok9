@@ -76,8 +76,11 @@ def diagnose():
     
     Request body:
     {
-        "symptoms": ["S01", "S02", "S03"],
-        "detailed": true  // optional, untuk trace lengkap
+        "symptoms": ["P01", "P02", "P03"],
+        "detailed": true,  // optional, untuk trace lengkap
+        "threshold": 60,   // optional, minimum confidence (default 60%)
+        "top_n": 5,        // optional, max results (default 5)
+        "strict_mode": false  // optional, 100% match only (default false)
     }
     
     Response:
@@ -85,9 +88,15 @@ def diagnose():
         "success": true,
         "data": {
             "symptoms_provided": [...],
-            "diagnoses_found": [...],
+            "diagnoses_found": [...],  // dengan confidence score
             "reasoning_steps": [...],
-            "summary": {...}
+            "summary": {
+                "total_symptoms": 3,
+                "total_diagnoses": 2,
+                "total_candidates": 5,
+                "threshold_used": 60,
+                "strict_mode": false
+            }
         }
     }
     """
@@ -102,6 +111,9 @@ def diagnose():
         
         symptoms = data['symptoms']
         detailed = data.get('detailed', True)
+        threshold = data.get('threshold', 60)  # Default 60%
+        top_n = data.get('top_n', 5)  # Default 5 results
+        strict_mode = data.get('strict_mode', False)  # Default partial matching
         
         # Validasi symptoms
         valid_symptoms = set(kb.symptoms.keys())
@@ -119,21 +131,33 @@ def diagnose():
                 'error': 'At least one symptom is required'
             }), 400
         
-        # Jalankan forward chaining
+        # Validasi threshold
+        if not (0 <= threshold <= 100):
+            return jsonify({
+                'success': False,
+                'error': 'Threshold must be between 0 and 100'
+            }), 400
+        
+        # Jalankan forward chaining dengan partial matching
         if detailed:
-            result = engine.explain_diagnosis(symptoms)
-            
-            # Tambahkan confidence score untuk setiap diagnosis
-            for diagnosis in result['diagnoses_found']:
-                diagnosis['confidence'] = engine.get_confidence_score(
-                    {'rule_id': diagnosis['rule_id']},
-                    symptoms
-                )
+            result = engine.explain_diagnosis(
+                symptoms, 
+                threshold=threshold, 
+                top_n=top_n, 
+                strict_mode=strict_mode
+            )
         else:
-            # Simple mode: hanya return diagnoses
-            full_result = engine.run(symptoms)
+            # Simple mode: hanya return diagnoses dengan confidence
+            full_result = engine.run(
+                symptoms, 
+                threshold=threshold, 
+                top_n=top_n, 
+                strict_mode=strict_mode
+            )
             result = {
-                'diagnoses_found': [d['diagnosis'] for d in full_result['diagnoses']]
+                'diagnoses_found': full_result['diagnoses'],
+                'total_candidates': full_result.get('total_candidates', 0),
+                'threshold_used': full_result.get('threshold_used', threshold)
             }
         
         return jsonify({

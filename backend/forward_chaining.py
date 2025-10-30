@@ -67,44 +67,123 @@ class ForwardChainingEngine:
             'conclusion': conclusion['diagnosis']
         })
         
-    def run(self, symptoms):
+    def run(self, symptoms, threshold=60, top_n=5, strict_mode=False):
         """
-        Jalankan forward chaining engine
+        Jalankan forward chaining engine dengan partial matching
         
         Args:
             symptoms: list of symptom codes
+            threshold: minimum confidence percentage untuk menampilkan hasil (default 60%)
+            top_n: jumlah maksimal hasil yang ditampilkan (default 5)
+            strict_mode: jika True, hanya tampilkan match 100% (default False)
             
         Returns:
             dict: {
-                'diagnoses': list of diagnoses,
+                'diagnoses': list of diagnoses dengan confidence score,
                 'trace': execution trace,
                 'fired_rules': rules yang di-fire,
-                'working_memory': final working memory
+                'working_memory': final working memory,
+                'total_candidates': jumlah total kandidat yang ditemukan
             }
         """
         self.reset()
         self.add_facts(symptoms)
         
+        # Jika strict mode, gunakan algoritma lama (100% match only)
+        if strict_mode:
+            return self._run_strict_mode(symptoms)
+        
+        # Partial matching: kumpulkan semua kandidat dengan confidence >= threshold
+        candidates = []
+        
+        for rule_id, rule in self.kb.get_all_rules().items():
+            conditions = set(rule['conditions'])
+            user_symptoms = set(symptoms)
+            
+            # Hitung matched dan missing symptoms
+            matched_symptoms = conditions.intersection(user_symptoms)
+            missing_symptoms = conditions.difference(user_symptoms)
+            
+            # Hitung confidence score
+            if len(conditions) > 0:
+                confidence = (len(matched_symptoms) / len(conditions)) * 100
+            else:
+                confidence = 0
+            
+            # Tambahkan ke kandidat jika memenuhi threshold
+            if confidence >= threshold:
+                candidates.append({
+                    'rule_id': rule_id,
+                    'confidence': round(confidence, 2),
+                    'diagnosis': rule['conclusion'],
+                    'matched_symptoms': list(matched_symptoms),
+                    'missing_symptoms': list(missing_symptoms),
+                    'total_conditions': len(conditions),
+                    'matched_count': len(matched_symptoms)
+                })
+                
+                # Tambahkan ke trace
+                self.trace.append({
+                    'step': len(candidates),
+                    'action': 'partial_match',
+                    'rule_id': rule_id,
+                    'confidence': round(confidence, 2),
+                    'matched': list(matched_symptoms),
+                    'missing': list(missing_symptoms)
+                })
+        
+        # Sort by confidence descending
+        candidates.sort(key=lambda x: x['confidence'], reverse=True)
+        
+        # Ambil top N hasil
+        top_candidates = candidates[:top_n]
+        
+        # Mark rules as fired untuk konsistensi
+        for candidate in top_candidates:
+            self.fired_rules.append(candidate['rule_id'])
+            self.inferred_facts.append({
+                'rule_id': candidate['rule_id'],
+                'diagnosis': candidate['diagnosis'],
+                'confidence': candidate['confidence']
+            })
+        
+        self.trace.append({
+            'step': 'termination',
+            'action': 'partial_matching_complete',
+            'message': f'Found {len(candidates)} candidates, returning top {len(top_candidates)}',
+            'threshold_used': threshold
+        })
+        
+        return {
+            'diagnoses': top_candidates,
+            'trace': self.trace,
+            'fired_rules': self.fired_rules,
+            'working_memory': list(self.working_memory),
+            'total_candidates': len(candidates),
+            'threshold_used': threshold,
+            'strict_mode': False
+        }
+    
+    def _run_strict_mode(self, symptoms):
+        """
+        Algoritma strict mode (100% match only) - backward compatibility
+        """
         # Forward chaining loop
         iteration = 0
-        max_iterations = 100  # Prevent infinite loop
+        max_iterations = 100
         
         while iteration < max_iterations:
             iteration += 1
             rules_fired_this_iteration = False
             
-            # Cek semua rules
             for rule_id, rule in self.kb.get_all_rules().items():
-                # Skip jika rule sudah pernah di-fire
                 if rule_id in self.fired_rules:
                     continue
                     
-                # Cek apakah rule match
                 if self.match_rule(rule_id, rule):
                     self.fire_rule(rule_id, rule)
                     rules_fired_this_iteration = True
             
-            # Jika tidak ada rule yang fire, berhenti
             if not rules_fired_this_iteration:
                 self.trace.append({
                     'step': 'termination',
@@ -118,14 +197,15 @@ class ForwardChainingEngine:
             'trace': self.trace,
             'fired_rules': self.fired_rules,
             'working_memory': list(self.working_memory),
-            'total_iterations': iteration
+            'total_iterations': iteration,
+            'strict_mode': True
         }
     
-    def explain_diagnosis(self, symptoms):
+    def explain_diagnosis(self, symptoms, threshold=60, top_n=5, strict_mode=False):
         """
-        Jalankan diagnosis dan berikan penjelasan lengkap
+        Jalankan diagnosis dan berikan penjelasan lengkap dengan confidence score
         """
-        result = self.run(symptoms)
+        result = self.run(symptoms, threshold=threshold, top_n=top_n, strict_mode=strict_mode)
         
         # Format output yang user-friendly
         explanation = {
@@ -140,36 +220,61 @@ class ForwardChainingEngine:
             'summary': {}
         }
         
-        # Format diagnoses
+        # Format diagnoses dengan confidence score
         for diag in result['diagnoses']:
-            explanation['diagnoses_found'].append({
+            diagnosis_info = {
                 'rule_id': diag['rule_id'],
                 'diagnosis': diag['diagnosis']['diagnosis'],
                 'category': diag['diagnosis']['category'],
                 'severity': diag['diagnosis']['severity'],
                 'description': diag['diagnosis']['description'],
                 'solutions': diag['diagnosis']['solutions']
-            })
+            }
+            
+            # Tambahkan confidence info jika bukan strict mode
+            if not strict_mode:
+                diagnosis_info['confidence'] = diag.get('confidence', 100)
+                diagnosis_info['matched_symptoms'] = diag.get('matched_symptoms', [])
+                diagnosis_info['missing_symptoms'] = diag.get('missing_symptoms', [])
+                diagnosis_info['match_ratio'] = f"{diag.get('matched_count', 0)}/{diag.get('total_conditions', 0)}"
+            
+            explanation['diagnoses_found'].append(diagnosis_info)
         
         # Format reasoning steps
         for trace_item in result['trace']:
-            if trace_item['action'] == 'fire_rule':
-                explanation['reasoning_steps'].append({
+            if trace_item['action'] in ['fire_rule', 'partial_match']:
+                step_info = {
                     'step': trace_item['step'],
                     'rule_fired': trace_item['rule_id'],
-                    'conditions_met': [
+                }
+                
+                if trace_item['action'] == 'partial_match':
+                    step_info['confidence'] = trace_item['confidence']
+                    step_info['matched_symptoms'] = [
+                        self.kb.get_symptom_description(c) 
+                        for c in trace_item['matched']
+                    ]
+                    step_info['missing_symptoms'] = [
+                        self.kb.get_symptom_description(c) 
+                        for c in trace_item['missing']
+                    ]
+                else:
+                    step_info['conditions_met'] = [
                         self.kb.get_symptom_description(c) 
                         for c in trace_item['conditions_met']
-                    ],
-                    'conclusion': trace_item['conclusion']
-                })
+                    ]
+                    step_info['conclusion'] = trace_item['conclusion']
+                
+                explanation['reasoning_steps'].append(step_info)
         
         # Summary
         explanation['summary'] = {
             'total_symptoms': len(symptoms),
             'total_diagnoses': len(result['diagnoses']),
             'rules_fired': len(result['fired_rules']),
-            'iterations': result['total_iterations']
+            'total_candidates': result.get('total_candidates', len(result['diagnoses'])),
+            'threshold_used': result.get('threshold_used', 100),
+            'strict_mode': result.get('strict_mode', False)
         }
         
         return explanation
